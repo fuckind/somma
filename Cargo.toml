@@ -10,4 +10,4 @@ keywords = ["somma", "ml", "rust"]
 categories = ["science"]
 
 [dependencies]
-num-traits = "0.2"
+rayon = "1"
