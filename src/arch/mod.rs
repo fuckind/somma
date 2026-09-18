@@ -1,9 +1,20 @@
 pub mod avx2;
 pub mod scalar;
 
-pub trait SimdArch<T> {
+use std::ops::{Add, Div, Mul, Sub};
+
+pub trait SimdScalar: Copy + Default + PartialEq + PartialOrd + Send + Sync + Add<Output = Self> + Sub<Output = Self> + Mul<Output = Self> + Div<Output = Self> {}
+
+impl SimdScalar for f32 {}
+impl SimdScalar for f64 {}
+
+pub trait SimdArch<T: SimdScalar> {
     type Mem: Copy + Send + Sync;
     const LANES: usize;
+
+    fn one() -> T;
+
+    fn sqrt(a: T) -> T;
 
     /// # Safety
     unsafe fn setzero() -> Self::Mem;
@@ -21,6 +32,9 @@ pub trait SimdArch<T> {
     unsafe fn abs(a: Self::Mem) -> Self::Mem;
 
     /// # Safety
+    fn scalar_abs(a: T) -> T;
+
+    /// # Safety
     unsafe fn reduce_max(a: Self::Mem) -> T;
 
     /// # Safety
@@ -28,6 +42,9 @@ pub trait SimdArch<T> {
 
     /// # Safety
     unsafe fn max(a: Self::Mem, b: Self::Mem) -> Self::Mem;
+
+    /// # Safety
+    fn scalar_max(a: T, b: T) -> T;
 
     /// # Safety
     unsafe fn div(a: Self::Mem, b: Self::Mem) -> Self::Mem;

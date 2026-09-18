@@ -5,6 +5,14 @@ impl SimdArch<f64> for Avx2 {
     type Mem = __m256d;
     const LANES: usize = 4;
 
+    fn one() -> f64 {
+        1.0
+    }
+
+    fn sqrt(a: f64) -> f64 {
+        a.sqrt()
+    }
+
     #[inline(always)]
     unsafe fn setzero() -> Self::Mem {
         unsafe { _mm256_setzero_pd() }
@@ -81,5 +89,15 @@ impl SimdArch<f64> for Avx2 {
             let sum = _mm256_hadd_pd(sum, sum);
             _mm_cvtsd_f64(_mm256_castpd256_pd128(sum))
         }
+    }
+
+    #[inline(always)]
+    fn scalar_abs(a: f64) -> f64 {
+        a.abs()
+    }
+
+    #[inline(always)]
+    fn scalar_max(a: f64, b: f64) -> f64 {
+        a.max(b)
     }
 }

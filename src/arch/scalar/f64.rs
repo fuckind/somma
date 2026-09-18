@@ -4,6 +4,14 @@ impl SimdArch<f64> for Scalar {
     type Mem = [f64; 4];
     const LANES: usize = 4;
 
+    fn one() -> f64 {
+        1.0
+    }
+
+    fn sqrt(a: f64) -> f64 {
+        a.sqrt()
+    }
+
     #[inline(always)]
     unsafe fn setzero() -> Self::Mem {
         [0.0; 4]
@@ -67,5 +75,15 @@ impl SimdArch<f64> for Scalar {
     #[inline(always)]
     unsafe fn horizontal_sum(a: Self::Mem) -> f64 {
         a.into_iter().fold(0.0, |sum, value| sum + value)
+    }
+
+    #[inline(always)]
+    fn scalar_abs(a: f64) -> f64 {
+        a.abs()
+    }
+
+    #[inline(always)]
+    fn scalar_max(a: f64, b: f64) -> f64 {
+        a.max(b)
     }
 }
