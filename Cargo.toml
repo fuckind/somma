@@ -1,0 +1,14 @@
+[package]
+name = "somma"
+version = "0.1.0"
+edition = "2024"
+description = "machine learning primitives for rust."
+readme = "readme.md"
+repository = "https://github.com/m0nten/somma"
+license = "MIT OR Apache-2.0"
+keywords = ["somma", "ml", "rust"]
+categories = ["science"]
+
+[dependencies]
+thiserror = "2"
+rayon = "1.1"
