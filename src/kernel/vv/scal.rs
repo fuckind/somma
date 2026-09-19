@@ -52,12 +52,6 @@ pub unsafe fn scal<T: SimdScalar, ARCH: SimdArch<T>>(x: &mut [T], a: T) {
         let mem_a = ARCH::set1(a);
 
         let mut i = 0;
-        while i < len && !(ptr_x.add(i) as usize).is_multiple_of(32) {
-            let p = ptr_x.add(i);
-            p.write(p.read() * a);
-            i += 1;
-        }
-
         while i + ARCH::LANES * 4 <= len {
             let x0 = ARCH::loadu(ptr_x.add(i));
             let x1 = ARCH::loadu(ptr_x.add(i + ARCH::LANES));
