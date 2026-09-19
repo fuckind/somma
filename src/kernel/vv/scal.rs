@@ -1,0 +1,93 @@
+use crate::arch::{SimdArch, SimdScalar, avx2::Avx2, scalar::Scalar};
+use rayon::{iter::ParallelIterator, slice::ParallelSliceMut};
+
+/// # Safety
+#[target_feature(enable = "avx2")]
+pub unsafe fn scal_avx2<T: crate::arch::SimdScalar>(x: &mut [T], a: T)
+where
+    Avx2: SimdArch<T>,
+{
+    unsafe { scal::<T, Avx2>(x, a) }
+}
+
+/// # Safety
+#[inline(always)]
+pub unsafe fn scal_scalar<T: crate::arch::SimdScalar>(x: &mut [T], a: T)
+where
+    Scalar: SimdArch<T>,
+{
+    unsafe { scal::<T, Scalar>(x, a) }
+}
+
+/// # Safety
+#[target_feature(enable = "avx2")]
+pub unsafe fn par_scal_avx2<T: crate::arch::SimdScalar>(x: &mut [T], a: T, chunk_size: usize)
+where
+    Avx2: SimdArch<T>,
+{
+    unsafe { par_scal::<T, Avx2>(x, a, chunk_size) }
+}
+
+/// # Safety
+#[inline(always)]
+pub unsafe fn par_scal_scalar<T: crate::arch::SimdScalar>(x: &mut [T], a: T, chunk_size: usize)
+where
+    Scalar: SimdArch<T>,
+{
+    unsafe { par_scal::<T, Scalar>(x, a, chunk_size) }
+}
+
+/// # Safety
+#[inline(always)]
+pub unsafe fn par_scal<T: SimdScalar, ARCH: SimdArch<T>>(x: &mut [T], a: T, chunk_size: usize) {
+    x.par_chunks_mut(chunk_size).for_each(|x| unsafe { scal::<T, ARCH>(x, a) });
+}
+
+/// # Safety
+#[inline(always)]
+pub unsafe fn scal<T: SimdScalar, ARCH: SimdArch<T>>(x: &mut [T], a: T) {
+    unsafe {
+        let len = x.len();
+        let ptr_x = x.as_mut_ptr();
+        let mem_a = ARCH::set1(a);
+
+        let mut i = 0;
+        while i < len && !(ptr_x.add(i) as usize).is_multiple_of(32) {
+            let p = ptr_x.add(i);
+            p.write(p.read() * a);
+            i += 1;
+        }
+
+        while i + ARCH::LANES * 4 <= len {
+            let x0 = ARCH::loadu(ptr_x.add(i));
+            let x1 = ARCH::loadu(ptr_x.add(i + ARCH::LANES));
+            let x2 = ARCH::loadu(ptr_x.add(i + ARCH::LANES * 2));
+            let x3 = ARCH::loadu(ptr_x.add(i + ARCH::LANES * 3));
+
+            let v0 = ARCH::mul(x0, mem_a);
+            let v1 = ARCH::mul(x1, mem_a);
+            let v2 = ARCH::mul(x2, mem_a);
+            let v3 = ARCH::mul(x3, mem_a);
+
+            ARCH::storeu(ptr_x.add(i), v0);
+            ARCH::storeu(ptr_x.add(i + ARCH::LANES), v1);
+            ARCH::storeu(ptr_x.add(i + ARCH::LANES * 2), v2);
+            ARCH::storeu(ptr_x.add(i + ARCH::LANES * 3), v3);
+
+            i += ARCH::LANES * 4;
+        }
+
+        while i + ARCH::LANES <= len {
+            let x0 = ARCH::loadu(ptr_x.add(i));
+            let v0 = ARCH::mul(x0, mem_a);
+            ARCH::storeu(ptr_x.add(i), v0);
+
+            i += ARCH::LANES;
+        }
+
+        while i < len {
+            x[i] = x[i] * a;
+            i += 1;
+        }
+    }
+}
