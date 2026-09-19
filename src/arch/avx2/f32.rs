@@ -56,6 +56,20 @@ impl SimdArch<f32> for Avx2 {
     }
 
     #[inline(always)]
+    unsafe fn reduce_min(a: Self::Mem) -> f32 {
+        unsafe {
+            let hi = _mm256_extractf128_ps(a, 1);
+            let lo = _mm256_castps256_ps128(a);
+
+            let mut result = _mm_min_ps(lo, hi);
+            result = _mm_min_ps(result, _mm_movehl_ps(result, result));
+            result = _mm_min_ps(result, _mm_shuffle_ps::<0x01>(result, result));
+
+            _mm_cvtss_f32(result)
+        }
+    }
+
+    #[inline(always)]
     unsafe fn and(a: Self::Mem, b: Self::Mem) -> Self::Mem {
         unsafe { _mm256_and_ps(a, b) }
     }
@@ -63,6 +77,11 @@ impl SimdArch<f32> for Avx2 {
     #[inline(always)]
     unsafe fn max(a: Self::Mem, b: Self::Mem) -> Self::Mem {
         unsafe { _mm256_max_ps(a, b) }
+    }
+
+    #[inline(always)]
+    unsafe fn min(a: Self::Mem, b: Self::Mem) -> Self::Mem {
+        unsafe { _mm256_min_ps(a, b) }
     }
 
     #[inline(always)]
@@ -103,5 +122,10 @@ impl SimdArch<f32> for Avx2 {
     #[inline(always)]
     fn scalar_max(a: f32, b: f32) -> f32 {
         a.max(b)
+    }
+
+    #[inline(always)]
+    fn scalar_min(a: f32, b: f32) -> f32 {
+        a.min(b)
     }
 }

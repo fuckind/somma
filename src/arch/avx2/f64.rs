@@ -53,6 +53,15 @@ impl SimdArch<f64> for Avx2 {
     }
 
     #[inline(always)]
+    unsafe fn reduce_min(a: Self::Mem) -> f64 {
+        unsafe {
+            let mut result = _mm_min_pd(_mm256_castpd256_pd128(a), _mm256_extractf128_pd(a, 1));
+            result = _mm_min_pd(result, _mm_shuffle_pd::<1>(result, result));
+            _mm_cvtsd_f64(result)
+        }
+    }
+
+    #[inline(always)]
     unsafe fn and(a: Self::Mem, b: Self::Mem) -> Self::Mem {
         unsafe { _mm256_and_pd(a, b) }
     }
@@ -60,6 +69,10 @@ impl SimdArch<f64> for Avx2 {
     #[inline(always)]
     unsafe fn max(a: Self::Mem, b: Self::Mem) -> Self::Mem {
         unsafe { _mm256_max_pd(a, b) }
+    }
+
+    unsafe fn min(a: Self::Mem, b: Self::Mem) -> Self::Mem {
+        unsafe { _mm256_min_pd(a, b) }
     }
 
     #[inline(always)]
@@ -99,5 +112,10 @@ impl SimdArch<f64> for Avx2 {
     #[inline(always)]
     fn scalar_max(a: f64, b: f64) -> f64 {
         a.max(b)
+    }
+
+    #[inline(always)]
+    fn scalar_min(a: f64, b: f64) -> f64 {
+        a.min(b)
     }
 }

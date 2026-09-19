@@ -43,6 +43,11 @@ impl SimdArch<f64> for Scalar {
     }
 
     #[inline(always)]
+    unsafe fn reduce_min(a: Self::Mem) -> f64 {
+        a.into_iter().reduce(|left, right| left.min(right)).unwrap()
+    }
+
+    #[inline(always)]
     unsafe fn and(a: Self::Mem, b: Self::Mem) -> Self::Mem {
         std::array::from_fn(|index| f64::from_bits(a[index].to_bits() & b[index].to_bits()))
     }
@@ -50,6 +55,11 @@ impl SimdArch<f64> for Scalar {
     #[inline(always)]
     unsafe fn max(a: Self::Mem, b: Self::Mem) -> Self::Mem {
         std::array::from_fn(|index| a[index].max(b[index]))
+    }
+
+    #[inline(always)]
+    unsafe fn min(a: Self::Mem, b: Self::Mem) -> Self::Mem {
+        std::array::from_fn(|index| a[index].min(b[index]))
     }
 
     #[inline(always)]
@@ -85,5 +95,10 @@ impl SimdArch<f64> for Scalar {
     #[inline(always)]
     fn scalar_max(a: f64, b: f64) -> f64 {
         a.max(b)
+    }
+
+    #[inline(always)]
+    fn scalar_min(a: f64, b: f64) -> f64 {
+        a.min(b)
     }
 }

@@ -38,13 +38,21 @@ pub trait SimdArch<T: SimdScalar> {
     unsafe fn reduce_max(a: Self::Mem) -> T;
 
     /// # Safety
+    unsafe fn reduce_min(a: Self::Mem) -> T;
+
+    /// # Safety
     unsafe fn and(a: Self::Mem, b: Self::Mem) -> Self::Mem;
 
     /// # Safety
     unsafe fn max(a: Self::Mem, b: Self::Mem) -> Self::Mem;
 
     /// # Safety
+    unsafe fn min(a: Self::Mem, b: Self::Mem) -> Self::Mem;
+
+    /// # Safety
     fn scalar_max(a: T, b: T) -> T;
+
+    fn scalar_min(a: T, b: T) -> T;
 
     /// # Safety
     unsafe fn div(a: Self::Mem, b: Self::Mem) -> Self::Mem;
