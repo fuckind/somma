@@ -1,2 +1,2 @@
-pub mod operation;
+pub mod operations;
 pub mod vectors;

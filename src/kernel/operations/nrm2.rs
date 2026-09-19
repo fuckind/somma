@@ -1,6 +1,6 @@
 use crate::{
     arch::{SimdArch, avx2::Avx2, scalar::Scalar},
-    kernel::operation::amax::{amax, amax_avx2},
+    kernel::operations::amax::{amax, amax_avx2},
 };
 use rayon::{iter::ParallelIterator, slice::ParallelSlice};
 
