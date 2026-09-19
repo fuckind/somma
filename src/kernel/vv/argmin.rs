@@ -13,6 +13,7 @@ where
     unsafe { argmin::<T, Avx2>(x) }
 }
 
+/// # Safety
 #[inline(always)]
 pub unsafe fn argmin_scalar<T: SimdScalar>(x: &[T]) -> usize
 where
@@ -30,6 +31,7 @@ where
     unsafe { par_argmin::<T, Avx2>(x, chunk_size) }
 }
 
+/// # Safety
 #[inline(always)]
 pub unsafe fn par_argmin_scalar<T: SimdScalar>(x: &[T], chunk_size: usize) -> usize
 where

@@ -13,6 +13,7 @@ where
     unsafe { argmax::<T, Avx2>(x) }
 }
 
+/// # Safety
 #[inline(always)]
 pub unsafe fn argmax_scalar<T: SimdScalar>(x: &[T]) -> usize
 where
@@ -30,6 +31,7 @@ where
     unsafe { par_argmax::<T, Avx2>(x, chunk_size) }
 }
 
+/// # Safety
 #[inline(always)]
 pub unsafe fn par_argmax_scalar<T: SimdScalar>(x: &[T], chunk_size: usize) -> usize
 where
