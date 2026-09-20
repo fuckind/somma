@@ -116,6 +116,14 @@ mod tests {
 
         assert_eq!(sequential, [12.0, 14.0, 16.0, 18.0, 20.0]);
         assert_eq!(parallel, sequential);
+
+        let x = [1.0_f64, 2.0, 3.0, 4.0, 5.0];
+        let mut sequential = [10.0; 5];
+        let mut parallel = sequential;
+        unsafe { axpy_scalar(&mut sequential, &x, 2.0) };
+        unsafe { par_axpy_scalar(&mut parallel, &x, 2.0, 2) };
+        assert_eq!(sequential, [12.0, 14.0, 16.0, 18.0, 20.0]);
+        assert_eq!(parallel, sequential);
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -132,6 +140,14 @@ mod tests {
         unsafe { super::axpy_avx2(&mut result, &x, 2.0) };
         unsafe { super::par_axpy_avx2(&mut parallel_result, &x, 2.0, 2) };
 
+        assert_eq!(result, [12.0, 14.0, 16.0, 18.0, 20.0]);
+        assert_eq!(parallel_result, result);
+
+        let x = [1.0_f64, 2.0, 3.0, 4.0, 5.0];
+        let mut result = [10.0; 5];
+        let mut parallel_result = result;
+        unsafe { super::axpy_avx2(&mut result, &x, 2.0) };
+        unsafe { super::par_axpy_avx2(&mut parallel_result, &x, 2.0, 2) };
         assert_eq!(result, [12.0, 14.0, 16.0, 18.0, 20.0]);
         assert_eq!(parallel_result, result);
     }

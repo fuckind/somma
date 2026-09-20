@@ -137,6 +137,10 @@ mod tests {
 
         assert_eq!(unsafe { argmax_scalar(&values) }, 1);
         assert_eq!(unsafe { par_argmax_scalar(&values, 2) }, 1);
+
+        let values = [1.0_f64, 7.0, 3.0, 7.0, -2.0];
+        assert_eq!(unsafe { argmax_scalar(&values) }, 1);
+        assert_eq!(unsafe { par_argmax_scalar(&values, 2) }, 1);
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -148,6 +152,10 @@ mod tests {
 
         let values = [1.0_f32, 7.0, 3.0, 7.0, -2.0];
 
+        assert_eq!(unsafe { super::argmax_avx2(&values) }, 1);
+        assert_eq!(unsafe { super::par_argmax_avx2(&values, 2) }, 1);
+
+        let values = [1.0_f64, 7.0, 3.0, 7.0, -2.0];
         assert_eq!(unsafe { super::argmax_avx2(&values) }, 1);
         assert_eq!(unsafe { super::par_argmax_avx2(&values, 2) }, 1);
     }

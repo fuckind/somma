@@ -182,6 +182,10 @@ mod tests {
 
         assert_eq!(nrm2_scalar(&values), 5.0);
         assert_eq!(par_nrm2_scalar(&values, 2), 5.0);
+
+        let values = [3.0_f64, 4.0, 0.0, 0.0, 0.0];
+        assert_eq!(nrm2_scalar(&values), 5.0);
+        assert_eq!(par_nrm2_scalar(&values, 2), 5.0);
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -193,6 +197,10 @@ mod tests {
 
         let values = [3.0_f32, 4.0, 0.0, 0.0, 0.0];
 
+        assert_eq!(unsafe { super::nrm2_avx2(&values) }, 5.0);
+        assert_eq!(unsafe { super::par_nrm2_avx2(&values, 2) }, 5.0);
+
+        let values = [3.0_f64, 4.0, 0.0, 0.0, 0.0];
         assert_eq!(unsafe { super::nrm2_avx2(&values) }, 5.0);
         assert_eq!(unsafe { super::par_nrm2_avx2(&values, 2) }, 5.0);
     }

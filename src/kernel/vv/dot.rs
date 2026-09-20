@@ -117,6 +117,11 @@ mod tests {
 
         assert_eq!(unsafe { dot_scalar(&x, &y) }, 35.0);
         assert_eq!(unsafe { par_dot_scalar(&x, &y, 2) }, 35.0);
+
+        let x = [1.0_f64, 2.0, 3.0, 4.0, 5.0];
+        let y = [5.0_f64, 4.0, 3.0, 2.0, 1.0];
+        assert_eq!(unsafe { dot_scalar(&x, &y) }, 35.0);
+        assert_eq!(unsafe { par_dot_scalar(&x, &y, 2) }, 35.0);
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -129,6 +134,11 @@ mod tests {
         let x = [1.0_f32, 2.0, 3.0, 4.0, 5.0];
         let y = [5.0_f32, 4.0, 3.0, 2.0, 1.0];
 
+        assert_eq!(unsafe { super::dot_avx2(&x, &y) }, 35.0);
+        assert_eq!(unsafe { super::par_dot_avx2(&x, &y, 2) }, 35.0);
+
+        let x = [1.0_f64, 2.0, 3.0, 4.0, 5.0];
+        let y = [5.0_f64, 4.0, 3.0, 2.0, 1.0];
         assert_eq!(unsafe { super::dot_avx2(&x, &y) }, 35.0);
         assert_eq!(unsafe { super::par_dot_avx2(&x, &y, 2) }, 35.0);
     }

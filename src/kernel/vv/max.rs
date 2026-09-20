@@ -119,12 +119,18 @@ mod tests {
         let result = unsafe { par_max_scalar(&values, 2) };
 
         assert_eq!(result, -3.0);
+
+        let values = [-8.0_f64, -3.0, -11.0, -5.0];
+        assert_eq!(unsafe { par_max_scalar(&values, 2) }, -3.0);
     }
 
     #[test]
     fn sequential_max_handles_all_negative_values() {
         let values = [-8.0_f32, -3.0, -11.0, -5.0];
 
+        assert_eq!(unsafe { max_scalar(&values) }, -3.0);
+
+        let values = [-8.0_f64, -3.0, -11.0, -5.0];
         assert_eq!(unsafe { max_scalar(&values) }, -3.0);
     }
 
@@ -137,6 +143,10 @@ mod tests {
 
         let values = [-8.0_f32, -3.0, -11.0, -5.0];
 
+        assert_eq!(unsafe { super::max_avx2(&values) }, -3.0);
+        assert_eq!(unsafe { super::par_max_avx2(&values, 2) }, -3.0);
+
+        let values = [-8.0_f64, -3.0, -11.0, -5.0];
         assert_eq!(unsafe { super::max_avx2(&values) }, -3.0);
         assert_eq!(unsafe { super::par_max_avx2(&values, 2) }, -3.0);
     }

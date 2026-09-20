@@ -109,6 +109,10 @@ mod tests {
 
         assert_eq!(amax_scalar(&values), 11.0);
         assert_eq!(par_amax_scalar(&values, 2), 11.0);
+
+        let values = [-8.0_f64, 3.0, -11.0, 5.0, -2.0];
+        assert_eq!(amax_scalar(&values), 11.0);
+        assert_eq!(par_amax_scalar(&values, 2), 11.0);
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -120,6 +124,10 @@ mod tests {
 
         let values = [-8.0_f32, 3.0, -11.0, 5.0, -2.0];
 
+        assert_eq!(unsafe { super::amax_avx2(&values) }, 11.0);
+        assert_eq!(unsafe { super::par_amax_avx2(&values, 2) }, 11.0);
+
+        let values = [-8.0_f64, 3.0, -11.0, 5.0, -2.0];
         assert_eq!(unsafe { super::amax_avx2(&values) }, 11.0);
         assert_eq!(unsafe { super::par_amax_avx2(&values, 2) }, 11.0);
     }

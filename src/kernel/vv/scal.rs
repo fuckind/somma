@@ -100,6 +100,13 @@ mod tests {
 
         assert_eq!(sequential, [-2.0, 4.0, -6.0, 8.0, -10.0]);
         assert_eq!(parallel, sequential);
+
+        let mut sequential = [1.0_f64, -2.0, 3.0, -4.0, 5.0];
+        let mut parallel = sequential;
+        unsafe { scal_scalar(&mut sequential, -2.0) };
+        unsafe { par_scal_scalar(&mut parallel, -2.0, 2) };
+        assert_eq!(sequential, [-2.0, 4.0, -6.0, 8.0, -10.0]);
+        assert_eq!(parallel, sequential);
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -115,6 +122,13 @@ mod tests {
         unsafe { super::scal_avx2(&mut result, -2.0) };
         unsafe { super::par_scal_avx2(&mut parallel_result, -2.0, 2) };
 
+        assert_eq!(result, [-2.0, 4.0, -6.0, 8.0, -10.0]);
+        assert_eq!(parallel_result, result);
+
+        let mut result = [1.0_f64, -2.0, 3.0, -4.0, 5.0];
+        let mut parallel_result = result;
+        unsafe { super::scal_avx2(&mut result, -2.0) };
+        unsafe { super::par_scal_avx2(&mut parallel_result, -2.0, 2) };
         assert_eq!(result, [-2.0, 4.0, -6.0, 8.0, -10.0]);
         assert_eq!(parallel_result, result);
     }

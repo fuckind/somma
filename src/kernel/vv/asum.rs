@@ -108,6 +108,10 @@ mod tests {
 
         assert_eq!(asum_scalar(&values), 15.0);
         assert_eq!(par_asum_scalar(&values, 2), 15.0);
+
+        let values = [-1.0_f64, 2.0, -3.0, 4.0, -5.0];
+        assert_eq!(asum_scalar(&values), 15.0);
+        assert_eq!(par_asum_scalar(&values, 2), 15.0);
     }
 
     #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
@@ -119,6 +123,10 @@ mod tests {
 
         let values = [-1.0_f32, 2.0, -3.0, 4.0, -5.0];
 
+        assert_eq!(unsafe { super::asum_avx2(&values) }, 15.0);
+        assert_eq!(unsafe { super::par_asum_avx2(&values, 2) }, 15.0);
+
+        let values = [-1.0_f64, 2.0, -3.0, 4.0, -5.0];
         assert_eq!(unsafe { super::asum_avx2(&values) }, 15.0);
         assert_eq!(unsafe { super::par_asum_avx2(&values, 2) }, 15.0);
     }
