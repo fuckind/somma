@@ -126,3 +126,29 @@ fn select_min<T: SimdScalar, ARCH: SimdArch<T>>(left: (T, usize), right: (T, usi
         right
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{argmin_scalar, par_argmin_scalar};
+
+    #[test]
+    fn sequential_and_parallel_argmin_match() {
+        let values = [1.0_f32, -7.0, 3.0, -7.0, 2.0];
+
+        assert_eq!(unsafe { argmin_scalar(&values) }, 1);
+        assert_eq!(unsafe { par_argmin_scalar(&values, 2) }, 1);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_argmin_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") {
+            return;
+        }
+
+        let values = [1.0_f32, -7.0, 3.0, -7.0, 2.0];
+
+        assert_eq!(unsafe { super::argmin_avx2(&values) }, 1);
+        assert_eq!(unsafe { super::par_argmin_avx2(&values, 2) }, 1);
+    }
+}

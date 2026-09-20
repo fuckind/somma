@@ -40,9 +40,13 @@ where
 /// # Safety
 #[inline(always)]
 pub unsafe fn par_max<T: SimdScalar, ARCH: SimdArch<T>>(x: &[T], chunk_size: usize) -> T {
+    assert!(!x.is_empty(), "max requires a non-empty slice");
+    assert!(chunk_size > 0, "chunk_size must be greater than zero");
+
     x.par_chunks(chunk_size)
         .map(|x| unsafe { max::<T, ARCH>(x) })
-        .reduce(|| T::default(), |a, b| ARCH::scalar_max(a, b))
+        .reduce_with(|a, b| ARCH::scalar_max(a, b))
+        .unwrap()
 }
 
 /// # Safety
@@ -50,6 +54,7 @@ pub unsafe fn par_max<T: SimdScalar, ARCH: SimdArch<T>>(x: &[T], chunk_size: usi
 pub unsafe fn max<T: SimdScalar, ARCH: SimdArch<T>>(x: &[T]) -> T {
     unsafe {
         let len = x.len();
+        assert!(len > 0, "max requires a non-empty slice");
         let ptr_x = x.as_ptr();
 
         if len < ARCH::LANES {
@@ -100,5 +105,39 @@ pub unsafe fn max<T: SimdScalar, ARCH: SimdArch<T>>(x: &[T]) -> T {
         }
 
         max
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{max_scalar, par_max_scalar};
+
+    #[test]
+    fn parallel_max_handles_all_negative_values() {
+        let values = [-8.0_f32, -3.0, -11.0, -5.0];
+
+        let result = unsafe { par_max_scalar(&values, 2) };
+
+        assert_eq!(result, -3.0);
+    }
+
+    #[test]
+    fn sequential_max_handles_all_negative_values() {
+        let values = [-8.0_f32, -3.0, -11.0, -5.0];
+
+        assert_eq!(unsafe { max_scalar(&values) }, -3.0);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_max_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") {
+            return;
+        }
+
+        let values = [-8.0_f32, -3.0, -11.0, -5.0];
+
+        assert_eq!(unsafe { super::max_avx2(&values) }, -3.0);
+        assert_eq!(unsafe { super::par_max_avx2(&values, 2) }, -3.0);
     }
 }

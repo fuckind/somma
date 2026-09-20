@@ -100,3 +100,39 @@ pub unsafe fn axpy<T: crate::arch::SimdScalar, ARCH: SimdArch<T>>(y: &mut [T], x
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{axpy_scalar, par_axpy_scalar};
+
+    #[test]
+    fn sequential_and_parallel_axpy_match() {
+        let x = [1.0_f32, 2.0, 3.0, 4.0, 5.0];
+        let mut sequential = [10.0, 10.0, 10.0, 10.0, 10.0];
+        let mut parallel = sequential;
+
+        unsafe { axpy_scalar(&mut sequential, &x, 2.0) };
+        unsafe { par_axpy_scalar(&mut parallel, &x, 2.0, 2) };
+
+        assert_eq!(sequential, [12.0, 14.0, 16.0, 18.0, 20.0]);
+        assert_eq!(parallel, sequential);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_axpy_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") || !is_x86_feature_detected!("fma") {
+            return;
+        }
+
+        let x = [1.0_f32, 2.0, 3.0, 4.0, 5.0];
+        let mut result = [10.0, 10.0, 10.0, 10.0, 10.0];
+        let mut parallel_result = result;
+
+        unsafe { super::axpy_avx2(&mut result, &x, 2.0) };
+        unsafe { super::par_axpy_avx2(&mut parallel_result, &x, 2.0, 2) };
+
+        assert_eq!(result, [12.0, 14.0, 16.0, 18.0, 20.0]);
+        assert_eq!(parallel_result, result);
+    }
+}

@@ -40,9 +40,13 @@ where
 /// # Safety
 #[inline(always)]
 pub unsafe fn par_min<T: SimdScalar, ARCH: SimdArch<T>>(x: &[T], chunk_size: usize) -> T {
+    assert!(!x.is_empty(), "min requires a non-empty slice");
+    assert!(chunk_size > 0, "chunk_size must be greater than zero");
+
     x.par_chunks(chunk_size)
         .map(|x| unsafe { min::<T, ARCH>(x) })
-        .reduce(|| T::default(), |a, b| ARCH::scalar_min(a, b))
+        .reduce_with(|a, b| ARCH::scalar_min(a, b))
+        .unwrap()
 }
 
 /// # Safety
@@ -50,6 +54,7 @@ pub unsafe fn par_min<T: SimdScalar, ARCH: SimdArch<T>>(x: &[T], chunk_size: usi
 pub unsafe fn min<T: SimdScalar, ARCH: SimdArch<T>>(x: &[T]) -> T {
     unsafe {
         let len = x.len();
+        assert!(len > 0, "min requires a non-empty slice");
         let ptr_x = x.as_ptr();
 
         if len < ARCH::LANES {
@@ -100,5 +105,39 @@ pub unsafe fn min<T: SimdScalar, ARCH: SimdArch<T>>(x: &[T]) -> T {
         }
 
         min
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{min_scalar, par_min_scalar};
+
+    #[test]
+    fn parallel_min_handles_all_positive_values() {
+        let values = [8.0_f32, 3.0, 11.0, 5.0];
+
+        let result = unsafe { par_min_scalar(&values, 2) };
+
+        assert_eq!(result, 3.0);
+    }
+
+    #[test]
+    fn sequential_min_handles_all_positive_values() {
+        let values = [8.0_f32, 3.0, 11.0, 5.0];
+
+        assert_eq!(unsafe { min_scalar(&values) }, 3.0);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_min_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") {
+            return;
+        }
+
+        let values = [8.0_f32, 3.0, 11.0, 5.0];
+
+        assert_eq!(unsafe { super::min_avx2(&values) }, 3.0);
+        assert_eq!(unsafe { super::par_min_avx2(&values, 2) }, 3.0);
     }
 }

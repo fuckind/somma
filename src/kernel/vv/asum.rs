@@ -97,3 +97,29 @@ pub unsafe fn asum<T: crate::arch::SimdScalar, ARCH: SimdArch<T>>(x: &[T]) -> T 
         sum
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{asum_scalar, par_asum_scalar};
+
+    #[test]
+    fn sequential_and_parallel_asum_match() {
+        let values = [-1.0_f32, 2.0, -3.0, 4.0, -5.0];
+
+        assert_eq!(asum_scalar(&values), 15.0);
+        assert_eq!(par_asum_scalar(&values, 2), 15.0);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_asum_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") {
+            return;
+        }
+
+        let values = [-1.0_f32, 2.0, -3.0, 4.0, -5.0];
+
+        assert_eq!(unsafe { super::asum_avx2(&values) }, 15.0);
+        assert_eq!(unsafe { super::par_asum_avx2(&values, 2) }, 15.0);
+    }
+}

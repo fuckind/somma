@@ -98,3 +98,29 @@ pub unsafe fn amax<T: crate::arch::SimdScalar, ARCH: SimdArch<T>>(x: &[T]) -> T 
         max
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{amax_scalar, par_amax_scalar};
+
+    #[test]
+    fn sequential_and_parallel_amax_match() {
+        let values = [-8.0_f32, 3.0, -11.0, 5.0, -2.0];
+
+        assert_eq!(amax_scalar(&values), 11.0);
+        assert_eq!(par_amax_scalar(&values, 2), 11.0);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_amax_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") {
+            return;
+        }
+
+        let values = [-8.0_f32, 3.0, -11.0, 5.0, -2.0];
+
+        assert_eq!(unsafe { super::amax_avx2(&values) }, 11.0);
+        assert_eq!(unsafe { super::par_amax_avx2(&values, 2) }, 11.0);
+    }
+}

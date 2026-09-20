@@ -171,3 +171,29 @@ unsafe fn raw_nrm2<T: crate::arch::SimdScalar, ARCH: SimdArch<T>>(x: &[T], scale
         sum
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{nrm2_scalar, par_nrm2_scalar};
+
+    #[test]
+    fn sequential_and_parallel_nrm2_match() {
+        let values = [3.0_f32, 4.0, 0.0, 0.0, 0.0];
+
+        assert_eq!(nrm2_scalar(&values), 5.0);
+        assert_eq!(par_nrm2_scalar(&values, 2), 5.0);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_nrm2_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") || !is_x86_feature_detected!("fma") {
+            return;
+        }
+
+        let values = [3.0_f32, 4.0, 0.0, 0.0, 0.0];
+
+        assert_eq!(unsafe { super::nrm2_avx2(&values) }, 5.0);
+        assert_eq!(unsafe { super::par_nrm2_avx2(&values, 2) }, 5.0);
+    }
+}

@@ -105,3 +105,31 @@ pub unsafe fn dot<T: crate::arch::SimdScalar, ARCH: SimdArch<T>>(x: &[T], y: &[T
         sum
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{dot_scalar, par_dot_scalar};
+
+    #[test]
+    fn sequential_and_parallel_dot_match() {
+        let x = [1.0_f32, 2.0, 3.0, 4.0, 5.0];
+        let y = [5.0_f32, 4.0, 3.0, 2.0, 1.0];
+
+        assert_eq!(unsafe { dot_scalar(&x, &y) }, 35.0);
+        assert_eq!(unsafe { par_dot_scalar(&x, &y, 2) }, 35.0);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_dot_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") || !is_x86_feature_detected!("fma") {
+            return;
+        }
+
+        let x = [1.0_f32, 2.0, 3.0, 4.0, 5.0];
+        let y = [5.0_f32, 4.0, 3.0, 2.0, 1.0];
+
+        assert_eq!(unsafe { super::dot_avx2(&x, &y) }, 35.0);
+        assert_eq!(unsafe { super::par_dot_avx2(&x, &y, 2) }, 35.0);
+    }
+}

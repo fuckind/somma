@@ -85,3 +85,37 @@ pub unsafe fn scal<T: SimdScalar, ARCH: SimdArch<T>>(x: &mut [T], a: T) {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::{par_scal_scalar, scal_scalar};
+
+    #[test]
+    fn sequential_and_parallel_scal_match() {
+        let mut sequential = [1.0_f32, -2.0, 3.0, -4.0, 5.0];
+        let mut parallel = sequential;
+
+        unsafe { scal_scalar(&mut sequential, -2.0) };
+        unsafe { par_scal_scalar(&mut parallel, -2.0, 2) };
+
+        assert_eq!(sequential, [-2.0, 4.0, -6.0, 8.0, -10.0]);
+        assert_eq!(parallel, sequential);
+    }
+
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    #[test]
+    fn avx2_scal_matches_scalar() {
+        if !is_x86_feature_detected!("avx2") {
+            return;
+        }
+
+        let mut result = [1.0_f32, -2.0, 3.0, -4.0, 5.0];
+        let mut parallel_result = result;
+
+        unsafe { super::scal_avx2(&mut result, -2.0) };
+        unsafe { super::par_scal_avx2(&mut parallel_result, -2.0, 2) };
+
+        assert_eq!(result, [-2.0, 4.0, -6.0, 8.0, -10.0]);
+        assert_eq!(parallel_result, result);
+    }
+}
